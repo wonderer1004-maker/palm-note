@@ -95,10 +95,11 @@ function render(){
  $('result').innerHTML=todayFortune(day)+'<div class="card headline"><small>YOUR PERSONAL NOTE · '+year+'</small><h2>'+name+'의 '+year+'년 사주 노트</h2><p>'+korean(annual)+'년 · '+t.title+'</p><p>'+t.text+'</p></div><div class="card"><small>02 / 네 기둥</small><h2>나의 사주팔자</h2><div class="columns">'+column+'</div><p class="note">양력 '+value+' · '+(unknown?'출생시간 미상':$('time').value+' 한국 표준시')+' · 일주는 '+($('sect').value==='2'?'밤 12시':'밤 11시')+' 기준</p><h3>일간 '+korean(pairs[2][0])+' · '+ELEMENTS[day]+'의 기운</h3><p>'+PERSONAL[day]+'</p></div><div class="card"><small>03 / 오행의 균형</small><h2>다섯 기운의 구성</h2>'+ELEMENTS.map((el,i)=>'<div class="barrow"><span>'+el+' ('+['木','火','土','金','水'][i]+')</span><div class="track"><div class="fill" style="width:'+counts[i]/total*100+'%;background:'+COLORS[i]+'"></div></div><span>'+counts[i]+'개</span></div>').join('')+'<p class="note">천간과 지지의 대표 오행을 단순 집계합니다. 지장간·월령 가중치·신강약·용신은 판단하지 않습니다. 없는 오행이 불운을 뜻하지 않습니다.</p></div><div class="card"><small>04 / 올해의 해설</small><h2>'+year+'년, 나를 위한 네 가지 질문</h2><div class="grid">'+[['재물 · 자원',t.money],['직장 · 성장',t.work],['관계 · 소통',t.love],['생활 · 컨디션',t.well]].map(v=>'<div class="mini"><h3>'+v[0]+'</h3><p>'+v[1]+'</p></div>').join('')+'</div><p class="note">일간 오행과 해당 연도 천간의 상생·상극 관계로 생성한 일반 해설입니다. 신살·대운·합충 전체를 종합한 정밀 감정은 아닙니다. 연도 운세는 입춘부터 다음 입춘까지의 기운을 뜻합니다.</p></div><div class="card"><small>05 / 월별 노트</small><h2>한 달씩 살펴보는 흐름</h2><p class="note">양력 매월 15일의 절기 월주를 대표로 사용합니다. 월초·절입 전후에는 월주가 다를 수 있습니다.</p><div class="months">'+months+'</div><div class="actions"><button id="copy" type="button">결과 전체 복사</button><button id="print" type="button" class="secondary">사주 해설 3페이지 · PDF 저장</button></div><p id="copyStatus" role="status" class="note"></p></div>';
  const monthlyCard=$('copy').parentElement.parentElement;
  monthlyCard.insertAdjacentHTML('afterend',longReport(pairs,counts,day,annual,annualE,year,name));
- $('print').onclick=()=>window.print();
+ splitBirthResults();
+ $('print').onclick=()=>printPage('saju');
  $('copy').onclick=async()=>{const text=$('result').innerText;try{await navigator.clipboard.writeText(text);$('copyStatus').textContent='전체 결과를 복사했습니다.';}catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();$('copyStatus').textContent=ok?'전체 결과를 복사했습니다.':'복사가 지원되지 않습니다. 결과를 선택하여 복사해주세요.';}};
  if(window.matchMedia('(max-width:760px)').matches)$('result').scrollIntoView({behavior:'smooth',block:'start'});
- }catch(e){$('error').textContent=e.message;$('result').innerHTML='<div class="card empty"><h2>입력값을 확인해주세요</h2><p>오류를 수정한 뒤 다시 조회해주세요.</p></div>';}
+ }catch(e){$('dailyResult').innerHTML='<div class="card"><p>입력값을 확인한 뒤 다시 조회해주세요.</p></div>';$('error').textContent=e.message;$('result').innerHTML='<div class="card empty"><h2>입력값을 확인해주세요</h2><p>오류를 수정한 뒤 다시 조회해주세요.</p></div>';}
 }
 $('year').value=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Seoul'}).slice(0,4);
 $('unknown').onchange=()=>{$('time').disabled=$('unknown').checked;};
@@ -122,3 +123,77 @@ for(let m=1;m<=12;m++)$('birthMonth').insertAdjacentHTML('beforeend','<option va
 $('birthYear').onchange=updateBirthDays;
 $('birthMonth').onchange=updateBirthDays;
 updateBirthDays();
+
+let activePage='today';
+function routePage(){
+ const route=location.hash.slice(1);activePage=['today','saju','name','match'].includes(route)?route:'today';
+ document.body.dataset.page=activePage;document.body.dataset.printPage=activePage;
+ $('birthLayout').hidden=!['today','saju'].includes(activePage);
+ $('dailyResult').hidden=activePage!=='today';$('result').hidden=activePage!=='saju';
+ $('namePage').hidden=activePage!=='name';$('matchPage').hidden=activePage!=='match';
+ document.querySelectorAll('[data-page]').forEach(a=>{a.setAttribute('aria-current',a.dataset.page===activePage?'page':'false');});
+ document.title=({today:'오늘의 운세',saju:'사주팔자',name:'성명학',match:'궁합'}[activePage])+' · 사주노트';
+}
+function printPage(page){document.body.dataset.printPage=page;window.print();}
+function outputActions(target,page){
+ return '<div class="actions"><button type="button" data-copy="'+target+'">결과 전체 복사</button><button type="button" data-print="'+page+'">이 페이지 인쇄 · PDF 저장</button></div><p class="note output-status" role="status"></p>';
+}
+async function copyOutput(target,button){
+ const container=$(target),text=container.innerText;let ok=false;
+ try{await navigator.clipboard.writeText(text);ok=true;}catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();ok=document.execCommand('copy');ta.remove();}
+ button.parentElement.nextElementSibling.textContent=ok?'전체 결과를 복사했습니다.':'결과를 선택해 복사해주세요.';
+}
+document.addEventListener('click',e=>{const button=e.target.closest('button');if(!button)return;if(button.dataset.print)printPage(button.dataset.print);if(button.dataset.copy)copyOutput(button.dataset.copy,button);});
+function splitBirthResults(){
+ const today=$('result').querySelector('.today');
+ if(today){$('dailyResult').replaceChildren(today);$('dailyResult').insertAdjacentHTML('beforeend',outputActions('dailyResult','today'));}
+ routePage();
+}
+window.addEventListener('hashchange',routePage);
+function addDateSelects(id,prefix){
+ $(id).innerHTML=['연도','월','일'].map((label,i)=>'<label>'+label+'<select required id="'+prefix+i+'"><option value="">선택</option></select></label>').join('');
+ const year=$(prefix+'0'),month=$(prefix+'1'),day=$(prefix+'2');
+ for(let y=currentBirthYear;y>=1900;y--)year.add(new Option(y+'년',y));
+ for(let m=1;m<=12;m++)month.add(new Option(m+'월',m));
+ const update=()=>{const prior=day.value,n=year.value&&month.value?new Date(Date.UTC(Number(year.value),Number(month.value),0)).getUTCDate():0;day.innerHTML='<option value="">선택</option>';for(let d=1;d<=n;d++)day.add(new Option(d+'일',d));day.value=Number(prior)<=n?prior:'';day.disabled=!n;};
+ year.onchange=month.onchange=update;update();
+}
+function readMatchDate(prefix){
+ const vals=[0,1,2].map(i=>Number($(prefix+i).value));const [y,m,d]=vals;
+ if(!y||!m||!d)throw Error('두 사람의 생년월일을 모두 선택해주세요.');
+ const date=new Date(Date.UTC(y,m-1,d));if(date>new Date()||date.getUTCMonth()+1!==m||date.getUTCDate()!==d)throw Error('실제 출생한 날짜를 입력해주세요.');
+ return vals;
+}
+addDateSelects('dateA','aBirth');addDateSelects('dateB','bBirth');
+$('matchForm').onsubmit=e=>{
+ e.preventDefault();$('matchError').textContent='';
+ try{
+ const a=readMatchDate('aBirth'),b=readMatchDate('bBirth');
+ const pa=pillars(...a,12,0).pairs,pb=pillars(...b,12,0).pairs;
+ const ea=GE[GAN.indexOf(pa[2][0])],eb=GE[GAN.indexOf(pb[2][0])],ab=relation(ea,eb),ba=relation(eb,ea);
+ const na=escapeHtml($('personA').value.trim()||'첫 번째 사람'),nb=escapeHtml($('personB').value.trim()||'두 번째 사람');
+ const kind=ea===eb?'비슷한 기운을 가진 관계':'서로 다른 기운을 만나는 관계';
+ $('matchResult').innerHTML='<div class="card"><small>두 사람의 관계 노트</small><h2>'+na+' × '+nb+'</h2><div class="grid"><div class="mini"><h3>'+na+'</h3><p>'+a.join('-')+' · 일주 '+korean(pa[2])+' · '+ELEMENTS[ea]+'</p><p>'+PERSONAL[ea]+'</p></div><div class="mini"><h3>'+nb+'</h3><p>'+b.join('-')+' · 일주 '+korean(pb[2])+' · '+ELEMENTS[eb]+'</p><p>'+PERSONAL[eb]+'</p></div></div><h3>'+kind+'</h3><p>'+na+'의 관점에서는 '+REL_NAMES[ab]+'의 관계로 읽습니다. '+REL_REASON[ab]+'</p><p>'+nb+'의 관점에서는 '+REL_NAMES[ba]+'의 관계로 읽습니다. '+REL_REASON[ba]+'</p><h3>서로를 이해하는 실천</h3><p>'+ACTIONS[ab][2]+' '+ACTIONS[ba][2]+'</p><h3>두 사람이 함께 이야기할 질문</h3><p>① 쉬고 싶을 때 어떤 도움이 필요한가요?<br>② 돈과 시간을 쓰는 기준은 어떻게 다른가요?<br>③ 의견이 다를 때 대화를 잠시 멈추는 신호를 정할 수 있나요?<br>④ 함께 지킬 작은 약속 한 가지는 무엇인가요?</p><h3>관계의 균형</h3><p>같은 오행은 공통점을 살피는 소재가 되고 다른 오행은 서로의 방식을 이해하는 소재가 됩니다. 상생이 항상 좋은 궁합, 상극이 나쁜 궁합을 뜻하지 않습니다. 실제 관계는 존중·신뢰·대화·생활 환경을 통해 확인하세요.</p><p class="note">일간 대표 오행만 비교한 전통 문화 해설입니다. 궁합 점수, 결혼 성사율, 이별 여부, 관계의 우열은 산출하지 않습니다. 입력은 저장하거나 서버로 전송하지 않습니다.</p></div>'+outputActions('matchResult','match');
+ }catch(err){$('matchError').textContent=err.message;$('matchResult').innerHTML='';}
+};
+$('nameForm').onsubmit=e=>{
+ e.preventDefault();$('nameError').textContent='';
+ try{
+ const raw=$('fullName').value.trim();if(!raw)throw Error('이름을 입력해주세요.');
+ const name=escapeHtml(raw),hanja=escapeHtml($('hanjaName').value.trim()),meaning=escapeHtml($('nameMeaning').value.trim());
+ const rawStrokes=$('strokes').value.trim();let numeric='';
+ if(rawStrokes){
+ const parts=rawStrokes.split(/[,，\s]+/).map(Number);
+ if(parts.length<2||parts.length>5||parts.some(n=>!Number.isInteger(n)||n<1||n>64))throw Error('획수는 1~64의 정수 2~5개를 쉼표로 구분해주세요.');
+ if(parts.length!==[...raw].filter(c=>!/\s/.test(c)).length)throw Error('이름 글자 수와 획수 개수를 맞춰주세요.');
+ const sum=parts.reduce((a,b)=>a+b,0);
+ numeric='<h3>직접 입력한 획수 구성</h3><p>'+parts.map((n,i)=>escapeHtml([...raw].filter(c=>!/\s/.test(c))[i])+' '+n+'획').join(' · ')+'<br>전체 합계: '+sum+'획</p>';
+ if(parts.length===3){
+ const [surname,first,last]=parts;
+ numeric+='<h3>세 글자 이름의 사격 수리</h3><div class="grid">'+[['원격',first+last,'이름 두 글자의 획수를 더한 값'],['형격',surname+first,'성의 획수와 이름 첫 글자를 더한 값'],['이격',surname+last,'성의 획수와 이름 끝 글자를 더한 값'],['정격',sum,'세 글자 전체 획수를 더한 값']].map(v=>'<div class="mini"><h3>'+v[0]+' · '+v[1]+'획</h3><p>'+v[2]+'</p></div>').join('')+'</div><p class="note">한 글자 성과 두 글자 이름을 가정한 국내 일부 성명학의 사격 계산 방식입니다. 복성이나 다른 체계에서는 계산법이 다릅니다. 수리의 길흉표·81수 해석이나 작명 적합성을 판정하지 않습니다.</p>';
+ }else numeric+='<p class="note">사격 계산은 한 글자 성과 두 글자 이름인 경우만 제공합니다. 다른 구성은 글자별 획수와 전체 합계만 표시합니다.</p>';
+ }
+ $('nameResult').innerHTML='<div class="card"><small>이름을 읽는 노트</small><h2>'+name+'의 이름 해설</h2><p>'+(hanja?'입력한 한자: '+hanja:'한자가 입력되지 않아 글자의 뜻과 획수를 자동 추정하지 않습니다.')+'</p><h3>이름에 담긴 의미</h3><p>'+(meaning||'이름의 뜻을 입력하면 이곳에 함께 표시됩니다. 가족에게 작명 의도를 물어보고 자신이 이어가고 싶은 의미를 찾아보세요.')+'</p><h3>이름을 통해 나를 돌아보기</h3><p>이름은 사람을 부르는 언어이자 가족이 담은 바람을 기억하는 계기가 될 수 있습니다. 이름의 의미와 실제 성격을 동일시하기보다 자신이 선택하고 실천할 가치로 읽어보세요.</p><h3>나의 이름과 연결할 질문</h3><p>① 이름에서 가장 마음에 드는 뜻은 무엇인가요?<br>② 그 뜻을 실제 행동으로 보여준 경험은 있나요?<br>③ 앞으로 어떤 사람으로 기억되고 싶은가요?<br>④ 그 방향을 위해 이번 주 어떤 작은 행동을 할 수 있나요?</p>'+numeric+'<h3>성명학 해석의 범위</h3><p>이 페이지는 입력한 이름의 의미와 전통 획수 구성의 계산을 정리합니다. 한글 발음 오행·한자 자원오행·사주와 이름의 용신 보완은 계산하지 않습니다. 개명 필요 여부나 이름이 성공·건강·재산을 결정한다는 결론은 내리지 않습니다.</p><p class="note">입력 내용은 저장하거나 서버로 보내지 않습니다. 뜻은 사용자가 제공한 내용이며, 한자의 사전 뜻을 검증한 결과는 아닙니다.</p></div>'+outputActions('nameResult','name');
+ }catch(err){$('nameError').textContent=err.message;$('nameResult').innerHTML='';}
+};
+routePage();
