@@ -24,7 +24,7 @@ function render(){
  $('error').textContent='';
  try{
  if(typeof Solar==='undefined')throw Error('계산 파일을 불러오지 못했습니다. 새로고침해주세요.');
- const value=$('date').value;if(!value)throw Error('생년월일을 입력해주세요.');
+ const value=birthDate();if(!value)throw Error('생년월일을 입력해주세요.');
  const [y,m,d]=value.split('-').map(Number), dt=new Date(Date.UTC(y,m-1,d));
  if(y<1900||y>2100||dt.getUTCMonth()+1!==m||dt.getUTCDate()!==d||value>new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'}))throw Error('실제 출생한 날짜를 입력해주세요.');
  const unknown=$('unknown').checked;
@@ -47,4 +47,22 @@ function render(){
 $('year').value=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Seoul'}).slice(0,4);
 $('unknown').onchange=()=>{$('time').disabled=$('unknown').checked;};
 $('form').onsubmit=e=>{e.preventDefault();render();};
-$('sample').onclick=()=>{$('name').value='예시';$('date').value='1990-05-15';$('time').value='09:30';$('unknown').checked=false;$('time').disabled=false;render();};
+$('sample').onclick=()=>{$('name').value='예시';$('birthYear').value='1990';$('birthMonth').value='5';updateBirthDays();$('birthDay').value='15';$('time').value='09:30';$('unknown').checked=false;$('time').disabled=false;render();};
+
+function birthDate(){
+ const y=$('birthYear').value,m=$('birthMonth').value,d=$('birthDay').value;
+ return y&&m&&d?y+'-'+m.padStart(2,'0')+'-'+d.padStart(2,'0'):'';
+}
+function updateBirthDays(){
+ const y=Number($('birthYear').value),m=Number($('birthMonth').value),previous=$('birthDay').value;
+ const days=y&&m?new Date(Date.UTC(y,m,0)).getUTCDate():0;
+ $('birthDay').innerHTML='<option value="">일 선택</option>'+Array.from({length:days},(_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'일</option>').join('');
+ $('birthDay').value=Number(previous)<=days?previous:'';
+ $('birthDay').disabled=!days;
+}
+const currentBirthYear=Number(new Intl.DateTimeFormat('en',{year:'numeric',timeZone:'Asia/Seoul'}).format(new Date()));
+for(let y=currentBirthYear;y>=1900;y--)$('birthYear').insertAdjacentHTML('beforeend','<option value="'+y+'">'+y+'년</option>');
+for(let m=1;m<=12;m++)$('birthMonth').insertAdjacentHTML('beforeend','<option value="'+m+'">'+m+'월</option>');
+$('birthYear').onchange=updateBirthDays;
+$('birthMonth').onchange=updateBirthDays;
+updateBirthDays();
