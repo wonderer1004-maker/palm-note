@@ -192,7 +192,8 @@ $('matchForm').onsubmit=e=>{
 $('nameForm').onsubmit=e=>{
  e.preventDefault();$('nameError').textContent='';
  try{
- const raw=$('fullName').value.trim();if(!raw)throw Error('이름을 입력해주세요.');
+ const raw=$('fullName').value.normalize('NFC').replace(/\s/g,'');if(!raw)throw Error('이름을 입력해주세요.');
+ validateHanjaSelection(raw);
  const name=escapeHtml(raw),hanja=escapeHtml($('hanjaName').value.trim()),meaning=escapeHtml($('nameMeaning').value.trim());
  const rawStrokes=$('strokes').value.trim();let numeric='';
  if(rawStrokes){
@@ -200,13 +201,69 @@ $('nameForm').onsubmit=e=>{
  if(parts.length<2||parts.length>5||parts.some(n=>!Number.isInteger(n)||n<1||n>64))throw Error('획수는 1~64의 정수 2~5개를 쉼표로 구분해주세요.');
  if(parts.length!==[...raw].filter(c=>!/\s/.test(c)).length)throw Error('이름 글자 수와 획수 개수를 맞춰주세요.');
  const sum=parts.reduce((a,b)=>a+b,0);
- numeric='<h3>직접 입력한 획수 구성</h3><p>'+parts.map((n,i)=>escapeHtml([...raw].filter(c=>!/\s/.test(c))[i])+' '+n+'획').join(' · ')+'<br>전체 합계: '+sum+'획</p>';
+ numeric='<h3>'+($('hanjaMode').value==='auto'?'선택한 한자의 자동 획수 구성':'직접 입력한 획수 구성')+'</h3><p>'+parts.map((n,i)=>escapeHtml([...raw].filter(c=>!/\s/.test(c))[i])+' '+n+'획').join(' · ')+'<br>전체 합계: '+sum+'획</p>';
  if(parts.length===3){
  const [surname,first,last]=parts;
  numeric+='<h3>세 글자 이름의 사격 수리</h3><div class="grid">'+[['원격',first+last,'이름 두 글자의 획수를 더한 값'],['형격',surname+first,'성의 획수와 이름 첫 글자를 더한 값'],['이격',surname+last,'성의 획수와 이름 끝 글자를 더한 값'],['정격',sum,'세 글자 전체 획수를 더한 값']].map(v=>'<div class="mini"><h3>'+v[0]+' · '+v[1]+'획</h3><p>'+v[2]+'</p></div>').join('')+'</div><p class="note">한 글자 성과 두 글자 이름을 가정한 국내 일부 성명학의 사격 계산 방식입니다. 복성이나 다른 체계에서는 계산법이 다릅니다. 수리의 길흉표·81수 해석이나 작명 적합성을 판정하지 않습니다.</p>';
  }else numeric+='<p class="note">사격 계산은 한 글자 성과 두 글자 이름인 경우만 제공합니다. 다른 구성은 글자별 획수와 전체 합계만 표시합니다.</p>';
  }
- $('nameResult').innerHTML='<div class="card"><small>이름을 읽는 노트</small><h2>'+name+'의 이름 해설</h2><p>'+(hanja?'입력한 한자: '+hanja:'한자가 입력되지 않아 글자의 뜻과 획수를 자동 추정하지 않습니다.')+'</p><h3>이름에 담긴 의미</h3><p>'+(meaning||'이름의 뜻을 입력하면 이곳에 함께 표시됩니다. 가족에게 작명 의도를 물어보고 자신이 이어가고 싶은 의미를 찾아보세요.')+'</p><h3>이름을 통해 나를 돌아보기</h3><p>이름은 사람을 부르는 언어이자 가족이 담은 바람을 기억하는 계기가 될 수 있습니다. 이름의 의미와 실제 성격을 동일시하기보다 자신이 선택하고 실천할 가치로 읽어보세요.</p><h3>나의 이름과 연결할 질문</h3><p>① 이름에서 가장 마음에 드는 뜻은 무엇인가요?<br>② 그 뜻을 실제 행동으로 보여준 경험은 있나요?<br>③ 앞으로 어떤 사람으로 기억되고 싶은가요?<br>④ 그 방향을 위해 이번 주 어떤 작은 행동을 할 수 있나요?</p>'+numeric+'<h3>성명학 해석의 범위</h3><p>이 페이지는 입력한 이름의 의미와 전통 획수 구성의 계산을 정리합니다. 한글 발음 오행·한자 자원오행·사주와 이름의 용신 보완은 계산하지 않습니다. 개명 필요 여부나 이름이 성공·건강·재산을 결정한다는 결론은 내리지 않습니다.</p><p class="note">입력 내용은 저장하거나 서버로 보내지 않습니다. 뜻은 사용자가 제공한 내용이며, 한자의 사전 뜻을 검증한 결과는 아닙니다.</p></div>'+outputActions('nameResult','name');
+ $('nameResult').innerHTML='<div class="card"><small>이름을 읽는 노트</small><h2>'+name+'의 이름 해설</h2><p>'+(hanja?'선택한 한자: '+hanja:'한자가 입력되지 않아 글자의 뜻과 획수를 자동 추정하지 않습니다.')+'</p><h3>이름에 담긴 의미</h3><p>'+(meaning||(selectedHanjaMeanings()||'이름의 뜻을 입력하면 이곳에 함께 표시됩니다. 가족에게 작명 의도를 물어보고 자신이 이어가고 싶은 의미를 찾아보세요.'))+'</p><h3>이름을 통해 나를 돌아보기</h3><p>이름은 사람을 부르는 언어이자 가족이 담은 바람을 기억하는 계기가 될 수 있습니다. 이름의 의미와 실제 성격을 동일시하기보다 자신이 선택하고 실천할 가치로 읽어보세요.</p><h3>나의 이름과 연결할 질문</h3><p>① 이름에서 가장 마음에 드는 뜻은 무엇인가요?<br>② 그 뜻을 실제 행동으로 보여준 경험은 있나요?<br>③ 앞으로 어떤 사람으로 기억되고 싶은가요?<br>④ 그 방향을 위해 이번 주 어떤 작은 행동을 할 수 있나요?</p>'+numeric+'<h3>성명학 해석의 범위</h3><p>이 페이지는 선택한 한자 또는 직접 입력한 이름의 의미와 획수 구성을 정리합니다. 자동 획수는 Unicode Unihan의 일반 총획수 기준으로 원획 수리와 차이가 날 수 있습니다. 한글 발음 오행·한자 자원오행·사주와 이름의 용신 보완은 계산하지 않습니다. 개명 필요 여부나 이름이 성공·건강·재산을 결정한다는 결론은 내리지 않습니다.</p><p class="note">입력 내용은 저장하거나 서버로 보내지 않습니다. 직접 적은 뜻은 사용자 제공 내용이며, 대표 후보의 짧은 뜻풀이는 선택을 돕는 참고 설명입니다. 자동 획수 출처: Unicode 17.0.0 Unihan (kTotalStrokes).</p></div>'+outputActions('nameResult','name');
  }catch(err){$('nameError').textContent=err.message;$('nameResult').innerHTML='';}
 };
 routePage();
+
+let hanjaSelections=[];
+function nameLetters(){return [...$('fullName').value.normalize('NFC').replace(/\s/g,'')];}
+function renderHanjaChoices(){
+ $('nameResult').innerHTML='';$('nameError').textContent='';
+ const letters=nameLetters(),prior=hanjaSelections;
+ hanjaSelections=letters.map((letter,i)=>({letter,char:prior[i]?.letter===letter?prior[i].char:''}));
+ if(!letters.length){$('hanjaChoices').innerHTML='<p class="note">이름을 입력하면 글자별 한자 후보가 나타납니다.</p>';syncHanjaSelection();return;}
+ $('hanjaChoices').innerHTML=letters.map((letter,i)=>{
+ const candidates=HANJA_DATA.byReading[letter]||[],representative=candidates.filter(c=>HANJA_DATA.characters[c].m),other=candidates.filter(c=>!HANJA_DATA.characters[c].m);
+ const options=cs=>cs.map(c=>{const item=HANJA_DATA.characters[c];return '<option value="'+c+'"'+(hanjaSelections[i].char===c?' selected':'')+'>'+c+' · '+(item.m||'추가 후보')+' · '+item.n+'획'+(item.alt?' (표기별 차이)':'')+'</option>';}).join('');
+ return '<div class="hanja-letter"><label for="hanjaPick'+i+'">'+(i+1)+'번째 글자 · '+escapeHtml(letter)+'</label><select id="hanjaPick'+i+'" data-hanja-index="'+i+'"'+(!candidates.length?' disabled':'')+'><option value="">'+(candidates.length?'실제 이름의 한자를 선택':'등록된 후보 없음')+'</option>'+(representative.length?'<optgroup label="대표 후보">'+options(representative)+'</optgroup>':'')+(other.length?'<optgroup label="그 밖의 후보">'+options(other)+'</optgroup>':'')+'</select><p class="note">'+(candidates.length?candidates.length+'개 후보 · 같은 음의 다른 한자는 뜻과 획수가 다릅니다.':'한글 이름 모드 또는 직접 입력 모드를 이용해주세요.')+'</p></div>';
+ }).join('');
+ syncHanjaSelection();
+}
+function syncHanjaSelection(){
+ if($('hanjaMode').value!=='auto')return;
+ const complete=hanjaSelections.length>0&&hanjaSelections.every(v=>v.char);
+ $('hanjaName').value=complete?hanjaSelections.map(v=>v.char).join(''):'';
+ $('strokes').value=complete?hanjaSelections.map(v=>HANJA_DATA.characters[v.char].n).join(', '):'';
+ const selected=hanjaSelections.filter(v=>v.char).length;
+ $('hanjaHint').textContent=complete?'한자 '+$('hanjaName').value+' · 획수 '+$('strokes').value+' 자동 입력 완료':selected+' / '+hanjaSelections.length+' 글자 선택 · 모든 글자의 한자를 선택하면 획수가 자동 입력됩니다.';
+ $('nameResult').innerHTML='';
+}
+function selectedHanjaMeanings(){
+ if($('hanjaMode').value!=='auto')return '';
+ return hanjaSelections.filter(v=>v.char).map(v=>v.char+' ('+v.letter+') · '+(HANJA_DATA.characters[v.char].m||'뜻은 별도 사전에서 확인해주세요')).join(' / ');
+}
+function validateHanjaSelection(raw){
+ if($('hanjaMode').value==='auto'){
+ const letters=[...raw];
+ if(letters.length!==hanjaSelections.length||hanjaSelections.some((v,i)=>v.letter!==letters[i]))renderHanjaChoices();
+ if(!hanjaSelections.length||hanjaSelections.some(v=>!v.char))throw Error('글자별 한자를 모두 선택해주세요. 후보가 없는 경우 직접 입력 또는 한글 이름 모드를 선택하세요.');
+ syncHanjaSelection();
+ }
+}
+$('hanjaChoices').addEventListener('change',e=>{
+ const index=Number(e.target.dataset.hanjaIndex);
+ if(!Number.isInteger(index)||!hanjaSelections[index])return;
+ const c=e.target.value,letter=hanjaSelections[index].letter;
+ hanjaSelections[index].char=(HANJA_DATA.byReading[letter]||[]).includes(c)?c:'';
+ syncHanjaSelection();
+});
+$('fullName').addEventListener('input',e=>{if(!e.isComposing)renderHanjaChoices();});
+$('fullName').addEventListener('compositionend',renderHanjaChoices);
+$('hanjaMode').onchange=()=>{
+ const mode=$('hanjaMode').value;
+ $('hanjaChoices').hidden=mode!=='auto';
+ $('hanjaName').readOnly=$('strokes').readOnly=mode!=='manual';
+ $('hanjaName').closest('label').hidden=$('strokes').closest('label').hidden=mode==='hangul';
+ $('nameError').textContent='';$('nameResult').innerHTML='';
+ if(mode==='auto'){renderHanjaChoices();}
+ else if(mode==='hangul'){$('hanjaName').value='';$('strokes').value='';$('hanjaHint').textContent='한자를 사용하지 않는 이름으로 해설합니다. 획수는 추정하지 않습니다.';}
+ else{$('hanjaHint').textContent='한자와 글자별 획수를 직접 확인하여 입력해주세요.';}
+};
+renderHanjaChoices();
