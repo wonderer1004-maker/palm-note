@@ -186,7 +186,7 @@ $('matchForm').onsubmit=e=>{
  const ea=GE[GAN.indexOf(pa[2][0])],eb=GE[GAN.indexOf(pb[2][0])],ab=relation(ea,eb),ba=relation(eb,ea);
  const na=escapeHtml($('personA').value.trim()||'첫 번째 사람'),nb=escapeHtml($('personB').value.trim()||'두 번째 사람');
  const kind=ea===eb?'비슷한 기운을 가진 관계':'서로 다른 기운을 만나는 관계';
- $('matchResult').innerHTML='<div class="card"><small>두 사람의 관계 노트</small><h2>'+na+' × '+nb+'</h2><div class="grid"><div class="mini"><h3>'+na+'</h3><p>'+a.join('-')+' · 일주 '+korean(pa[2])+' · '+ELEMENTS[ea]+'</p><p>'+PERSONAL[ea]+'</p></div><div class="mini"><h3>'+nb+'</h3><p>'+b.join('-')+' · 일주 '+korean(pb[2])+' · '+ELEMENTS[eb]+'</p><p>'+PERSONAL[eb]+'</p></div></div><h3>'+kind+'</h3><p>'+na+'의 관점에서는 '+REL_NAMES[ab]+'의 관계로 읽습니다. '+REL_REASON[ab]+'</p><p>'+nb+'의 관점에서는 '+REL_NAMES[ba]+'의 관계로 읽습니다. '+REL_REASON[ba]+'</p><h3>서로를 이해하는 실천</h3><p>'+ACTIONS[ab][2]+' '+ACTIONS[ba][2]+'</p><h3>두 사람이 함께 이야기할 질문</h3><p>① 쉬고 싶을 때 어떤 도움이 필요한가요?<br>② 돈과 시간을 쓰는 기준은 어떻게 다른가요?<br>③ 의견이 다를 때 대화를 잠시 멈추는 신호를 정할 수 있나요?<br>④ 함께 지킬 작은 약속 한 가지는 무엇인가요?</p><h3>관계의 균형</h3><p>같은 오행은 공통점을 살피는 소재가 되고 다른 오행은 서로의 방식을 이해하는 소재가 됩니다. 상생이 항상 좋은 궁합, 상극이 나쁜 궁합을 뜻하지 않습니다. 실제 관계는 존중·신뢰·대화·생활 환경을 통해 확인하세요.</p><p class="note">일간 대표 오행만 비교한 전통 문화 해설입니다. 궁합 점수, 결혼 성사율, 이별 여부, 관계의 우열은 산출하지 않습니다. 입력은 저장하거나 서버로 전송하지 않습니다.</p></div>'+matchPeriodReport(na,nb,ea,eb,ab,ba)+outputActions('matchResult','match');
+ $('matchResult').innerHTML=marriageReadinessCard()+'<div class="card"><small>두 사람의 관계 노트</small><h2>'+na+' × '+nb+'</h2><div class="grid"><div class="mini"><h3>'+na+'</h3><p>'+a.join('-')+' · 일주 '+korean(pa[2])+' · '+ELEMENTS[ea]+'</p><p>'+PERSONAL[ea]+'</p></div><div class="mini"><h3>'+nb+'</h3><p>'+b.join('-')+' · 일주 '+korean(pb[2])+' · '+ELEMENTS[eb]+'</p><p>'+PERSONAL[eb]+'</p></div></div><h3>'+kind+'</h3><p>'+na+'의 관점에서는 '+REL_NAMES[ab]+'의 관계로 읽습니다. '+REL_REASON[ab]+'</p><p>'+nb+'의 관점에서는 '+REL_NAMES[ba]+'의 관계로 읽습니다. '+REL_REASON[ba]+'</p><h3>서로를 이해하는 실천</h3><p>'+ACTIONS[ab][2]+' '+ACTIONS[ba][2]+'</p><h3>두 사람이 함께 이야기할 질문</h3><p>① 쉬고 싶을 때 어떤 도움이 필요한가요?<br>② 돈과 시간을 쓰는 기준은 어떻게 다른가요?<br>③ 의견이 다를 때 대화를 잠시 멈추는 신호를 정할 수 있나요?<br>④ 함께 지킬 작은 약속 한 가지는 무엇인가요?</p><h3>관계의 균형</h3><p>같은 오행은 공통점을 살피는 소재가 되고 다른 오행은 서로의 방식을 이해하는 소재가 됩니다. 상생이 항상 좋은 궁합, 상극이 나쁜 궁합을 뜻하지 않습니다. 실제 관계는 존중·신뢰·대화·생활 환경을 통해 확인하세요.</p><p class="note">일간 대표 오행만 비교한 전통 문화 해설입니다. 생년월일로 실제 결혼 성사율·이별 여부를 산출하지 않습니다. 상단 준비도는 별도로 답한 생활·합의 항목의 점수입니다. 입력은 저장하거나 서버로 전송하지 않습니다.</p></div>'+matchPeriodReport(na,nb,ea,eb,ab,ba)+outputActions('matchResult','match');
  }catch(err){$('matchError').textContent=err.message;$('matchResult').innerHTML='';}
 };
 $('nameForm').onsubmit=e=>{
@@ -339,3 +339,16 @@ $('hanjaMode').onchange=()=>{
  else{$('hanjaHint').textContent='한자와 글자별 획수를 직접 확인하여 입력해주세요.';}
 };
 renderHanjaChoices();
+
+function marriageReadinessCard(){
+ const questions=['두 사람 모두 결혼을 원하고 의사를 확인했나요?','결혼 시기와 함께 살 계획을 합의했나요?','주거·예산·부채 등 재정 상황을 공유했나요?','생활 방식과 가족·자녀에 대한 생각을 이야기했나요?','갈등이 생겼을 때 대화하고 조율하는 방법이 있나요?'];
+ return '<section class="card marriage-card" style="border-color:#bda772"><small>MARRIAGE · 두 사람의 준비 상태</small><h2>결혼 가능성 · 준비도 확인</h2><p class="note">실제 결혼 확률은 생년월일만으로 계산할 수 없습니다. 아래 질문에 답하면 합의·준비 상태를 0~100%의 참고 점수로 표시합니다.</p><div class="mini"><strong id="marriageScore" style="font-size:36px">—%</strong><p id="marriageSummary" role="status">5개 항목에 답하면 결혼 준비도 점수가 표시됩니다.</p><div class="track" style="margin-top:12px"><div id="marriageBar" class="fill" style="width:0%;background:#648b63"></div></div></div>'+questions.map((q,i)=>'<label>'+q+'<select id="marriageQ'+i+'" data-marriage-question="'+i+'"><option value="">선택해주세요</option><option value="2">충분히 이야기했고 합의했어요</option><option value="1">이야기 중이거나 일부 준비했어요</option><option value="0">아직 이야기하지 않았거나 합의하지 못했어요</option></select></label>').join('')+'<p class="note">계산: 합의 2점 · 진행 중 1점 · 미합의 0점, 합계 ÷ 10 × 100. 앱에서 정한 동일 가중치의 자기 점검 기준이며 검증된 확률 모형이 아닙니다. 100%여도 실제 결혼을 보장하지 않고 낮은 점수도 결혼 불가를 뜻하지 않습니다. 질문에 대한 응답은 저장·전송하지 않습니다.</p></section>';
+}
+function updateMarriageReadiness(){
+ const answers=Array.from({length:5},(_,i)=>$('marriageQ'+i).value),filled=answers.filter(v=>v!=='').length;
+ if(filled!==5){$('marriageScore').textContent='—%';$('marriageBar').style.width='0%';$('marriageSummary').textContent=filled+' / 5개 항목 응답 · 모두 선택하면 점수를 계산합니다.';return;}
+ const score=answers.reduce((sum,v)=>sum+Number(v),0)*10;
+ $('marriageScore').textContent=score+'%';$('marriageBar').style.width=score+'%';
+ $('marriageSummary').textContent='결혼 준비도 '+score+'% · '+(score>=80?'여러 항목에 합의했습니다. 남은 부분과 실제 실행 계획을 확인해보세요.':score>=40?'합의와 준비가 진행 중입니다. 부분 합의 항목부터 구체화해보세요.':'아직 논의할 항목이 많습니다. 서로 결혼을 원하는지부터 차분히 확인해보세요.')+' 실제 결혼 확률을 의미하지 않습니다.';
+}
+document.addEventListener('change',e=>{if(e.target.matches('[data-marriage-question]'))updateMarriageReadiness();});
