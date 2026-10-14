@@ -186,7 +186,7 @@ $('matchForm').onsubmit=e=>{
  const ea=GE[GAN.indexOf(pa[2][0])],eb=GE[GAN.indexOf(pb[2][0])],ab=relation(ea,eb),ba=relation(eb,ea);
  const na=escapeHtml($('personA').value.trim()||'첫 번째 사람'),nb=escapeHtml($('personB').value.trim()||'두 번째 사람');
  const kind=ea===eb?'비슷한 기운을 가진 관계':'서로 다른 기운을 만나는 관계';
- $('matchResult').innerHTML='<div class="card"><small>두 사람의 관계 노트</small><h2>'+na+' × '+nb+'</h2><div class="grid"><div class="mini"><h3>'+na+'</h3><p>'+a.join('-')+' · 일주 '+korean(pa[2])+' · '+ELEMENTS[ea]+'</p><p>'+PERSONAL[ea]+'</p></div><div class="mini"><h3>'+nb+'</h3><p>'+b.join('-')+' · 일주 '+korean(pb[2])+' · '+ELEMENTS[eb]+'</p><p>'+PERSONAL[eb]+'</p></div></div><h3>'+kind+'</h3><p>'+na+'의 관점에서는 '+REL_NAMES[ab]+'의 관계로 읽습니다. '+REL_REASON[ab]+'</p><p>'+nb+'의 관점에서는 '+REL_NAMES[ba]+'의 관계로 읽습니다. '+REL_REASON[ba]+'</p><h3>서로를 이해하는 실천</h3><p>'+ACTIONS[ab][2]+' '+ACTIONS[ba][2]+'</p><h3>두 사람이 함께 이야기할 질문</h3><p>① 쉬고 싶을 때 어떤 도움이 필요한가요?<br>② 돈과 시간을 쓰는 기준은 어떻게 다른가요?<br>③ 의견이 다를 때 대화를 잠시 멈추는 신호를 정할 수 있나요?<br>④ 함께 지킬 작은 약속 한 가지는 무엇인가요?</p><h3>관계의 균형</h3><p>같은 오행은 공통점을 살피는 소재가 되고 다른 오행은 서로의 방식을 이해하는 소재가 됩니다. 상생이 항상 좋은 궁합, 상극이 나쁜 궁합을 뜻하지 않습니다. 실제 관계는 존중·신뢰·대화·생활 환경을 통해 확인하세요.</p><p class="note">일간 대표 오행만 비교한 전통 문화 해설입니다. 궁합 점수, 결혼 성사율, 이별 여부, 관계의 우열은 산출하지 않습니다. 입력은 저장하거나 서버로 전송하지 않습니다.</p></div>'+outputActions('matchResult','match');
+ $('matchResult').innerHTML='<div class="card"><small>두 사람의 관계 노트</small><h2>'+na+' × '+nb+'</h2><div class="grid"><div class="mini"><h3>'+na+'</h3><p>'+a.join('-')+' · 일주 '+korean(pa[2])+' · '+ELEMENTS[ea]+'</p><p>'+PERSONAL[ea]+'</p></div><div class="mini"><h3>'+nb+'</h3><p>'+b.join('-')+' · 일주 '+korean(pb[2])+' · '+ELEMENTS[eb]+'</p><p>'+PERSONAL[eb]+'</p></div></div><h3>'+kind+'</h3><p>'+na+'의 관점에서는 '+REL_NAMES[ab]+'의 관계로 읽습니다. '+REL_REASON[ab]+'</p><p>'+nb+'의 관점에서는 '+REL_NAMES[ba]+'의 관계로 읽습니다. '+REL_REASON[ba]+'</p><h3>서로를 이해하는 실천</h3><p>'+ACTIONS[ab][2]+' '+ACTIONS[ba][2]+'</p><h3>두 사람이 함께 이야기할 질문</h3><p>① 쉬고 싶을 때 어떤 도움이 필요한가요?<br>② 돈과 시간을 쓰는 기준은 어떻게 다른가요?<br>③ 의견이 다를 때 대화를 잠시 멈추는 신호를 정할 수 있나요?<br>④ 함께 지킬 작은 약속 한 가지는 무엇인가요?</p><h3>관계의 균형</h3><p>같은 오행은 공통점을 살피는 소재가 되고 다른 오행은 서로의 방식을 이해하는 소재가 됩니다. 상생이 항상 좋은 궁합, 상극이 나쁜 궁합을 뜻하지 않습니다. 실제 관계는 존중·신뢰·대화·생활 환경을 통해 확인하세요.</p><p class="note">일간 대표 오행만 비교한 전통 문화 해설입니다. 궁합 점수, 결혼 성사율, 이별 여부, 관계의 우열은 산출하지 않습니다. 입력은 저장하거나 서버로 전송하지 않습니다.</p></div>'+matchPeriodReport(na,nb,ea,eb,ab,ba)+outputActions('matchResult','match');
  }catch(err){$('matchError').textContent=err.message;$('matchResult').innerHTML='';}
 };
 $('nameForm').onsubmit=e=>{
@@ -194,25 +194,97 @@ $('nameForm').onsubmit=e=>{
  try{
  const raw=$('fullName').value.normalize('NFC').replace(/\s/g,'');if(!raw)throw Error('이름을 입력해주세요.');
  validateHanjaSelection(raw);
- const name=escapeHtml(raw),hanja=escapeHtml($('hanjaName').value.trim()),meaning=escapeHtml($('nameMeaning').value.trim());
- const rawStrokes=$('strokes').value.trim();let numeric='';
+ const name=escapeHtml(raw),hanja=escapeHtml($('hanjaName').value.trim());
+ const rawStrokes=$('strokes').value.trim();let numeric='',periodParts=null;
  if(rawStrokes){
  const parts=rawStrokes.split(/[,，\s]+/).map(Number);
  if(parts.length<2||parts.length>5||parts.some(n=>!Number.isInteger(n)||n<1||n>64))throw Error('획수는 1~64의 정수 2~5개를 쉼표로 구분해주세요.');
  if(parts.length!==[...raw].filter(c=>!/\s/.test(c)).length)throw Error('이름 글자 수와 획수 개수를 맞춰주세요.');
- const sum=parts.reduce((a,b)=>a+b,0);
+ periodParts=parts;const sum=parts.reduce((a,b)=>a+b,0);
  numeric='<h3>'+($('hanjaMode').value==='auto'?'선택한 한자의 자동 획수 구성':'직접 입력한 획수 구성')+'</h3><p>'+parts.map((n,i)=>escapeHtml([...raw].filter(c=>!/\s/.test(c))[i])+' '+n+'획').join(' · ')+'<br>전체 합계: '+sum+'획</p>';
  if(parts.length===3){
  const [surname,first,last]=parts;
  numeric+='<h3>세 글자 이름의 사격 수리</h3><div class="grid">'+[['원격',first+last,'이름 두 글자의 획수를 더한 값'],['형격',surname+first,'성의 획수와 이름 첫 글자를 더한 값'],['이격',surname+last,'성의 획수와 이름 끝 글자를 더한 값'],['정격',sum,'세 글자 전체 획수를 더한 값']].map(v=>'<div class="mini"><h3>'+v[0]+' · '+v[1]+'획</h3><p>'+v[2]+'</p></div>').join('')+'</div><p class="note">한 글자 성과 두 글자 이름을 가정한 국내 일부 성명학의 사격 계산 방식입니다. 복성이나 다른 체계에서는 계산법이 다릅니다. 수리의 길흉표·81수 해석이나 작명 적합성을 판정하지 않습니다.</p>';
  }else numeric+='<p class="note">사격 계산은 한 글자 성과 두 글자 이름인 경우만 제공합니다. 다른 구성은 글자별 획수와 전체 합계만 표시합니다.</p>';
  }
- $('nameResult').innerHTML='<div class="card"><small>이름을 읽는 노트</small><h2>'+name+'의 이름 해설</h2><p>'+(hanja?'선택한 한자: '+hanja:'한자가 입력되지 않아 글자의 뜻과 획수를 자동 추정하지 않습니다.')+'</p><h3>이름에 담긴 의미</h3><p>'+(meaning||(selectedHanjaMeanings()||'이름의 뜻을 입력하면 이곳에 함께 표시됩니다. 가족에게 작명 의도를 물어보고 자신이 이어가고 싶은 의미를 찾아보세요.'))+'</p><h3>이름을 통해 나를 돌아보기</h3><p>이름은 사람을 부르는 언어이자 가족이 담은 바람을 기억하는 계기가 될 수 있습니다. 이름의 의미와 실제 성격을 동일시하기보다 자신이 선택하고 실천할 가치로 읽어보세요.</p><h3>나의 이름과 연결할 질문</h3><p>① 이름에서 가장 마음에 드는 뜻은 무엇인가요?<br>② 그 뜻을 실제 행동으로 보여준 경험은 있나요?<br>③ 앞으로 어떤 사람으로 기억되고 싶은가요?<br>④ 그 방향을 위해 이번 주 어떤 작은 행동을 할 수 있나요?</p>'+numeric+'<h3>성명학 해석의 범위</h3><p>이 페이지는 선택한 한자 또는 직접 입력한 이름의 의미와 획수 구성을 정리합니다. 자동 획수는 Unicode Unihan의 일반 총획수 기준으로 원획 수리와 차이가 날 수 있습니다. 한글 발음 오행·한자 자원오행·사주와 이름의 용신 보완은 계산하지 않습니다. 개명 필요 여부나 이름이 성공·건강·재산을 결정한다는 결론은 내리지 않습니다.</p><p class="note">입력 내용은 저장하거나 서버로 보내지 않습니다. 직접 적은 뜻은 사용자 제공 내용이며, 대표 후보의 짧은 뜻풀이는 선택을 돕는 참고 설명입니다. 자동 획수 출처: Unicode 17.0.0 Unihan (kTotalStrokes).</p></div>'+outputActions('nameResult','name');
+ $('nameResult').innerHTML='<div class="card"><small>이름의 네 시기 노트</small><h2>'+name+'의 성명학 상세 풀이</h2><p>'+(hanja?'선택한 한자: '+hanja:'한글 이름 · 한자 미입력')+'</p><p>'+(escapeHtml(selectedHanjaMeanings())||'글자의 뜻을 임의로 추정하지 않습니다.')+'</p>'+numeric+namePeriodReport(raw,periodParts)+'<p class="note">한 글자 성과 두 글자 이름에 사격 계산을 적용합니다. 자동 획수는 Unicode 일반 총획수로 원획과 다를 수 있습니다. 이름의 길흉·개명 필요성이나 인생 사건을 단정하지 않습니다. 입력정보는 저장하거나 전송하지 않습니다.</p></div>'+outputActions('nameResult','name');
  }catch(err){$('nameError').textContent=err.message;$('nameResult').innerHTML='';}
 };
 routePage();
 
 let hanjaSelections=[];
+function namePeriodReport(raw,parts){
+ const letters=[...raw],selected=$('hanjaMode').value==='auto'?selectedHanjaMeanings():'';
+ const base=parts&&parts.length===3?parts:null;
+ const configs=[
+ {title:'초년 · 성장과 배움',gyeok:'원격',formula:'이름 첫 글자 + 이름 끝 글자',value:base?base[1]+base[2]:null,indices:[1,2],
+  focus:'초년은 새로운 경험을 배우고 생활의 기초를 만드는 단계로 읽습니다. 학습 습관, 자신감을 얻는 방식, 주변의 도움을 받는 태도를 돌아보는 주제입니다.',
+  strength:'잘하는 일을 발견하려면 결과만 평가하기보다 과정에서 꾸준히 했던 행동을 살펴보세요. 이름 글자의 의미는 자신에게 기대할 수 있는 가치를 떠올리는 소재가 됩니다.',
+  balance:'다른 사람의 평가나 기대를 모두 충족하려 하면 자신의 속도를 놓칠 수 있습니다. 잘되지 않은 경험을 성격의 결함으로 단정하기보다 방법과 환경을 바꿔볼 기회로 생각해보세요.',
+  action:'배우고 싶은 것 한 가지를 정해 작은 단위로 연습하고, 한 주에 한 번 배운 점을 기록해보세요. 도움이 필요할 때 요청할 사람도 미리 떠올려보세요.',
+  question:'어떤 환경에서 자신감이 생겼나요? 지금 새로 배우는 일에도 그 조건을 만들 수 있나요?'},
+ {title:'중년 · 사회 활동과 선택',gyeok:'형격',formula:'성 + 이름 첫 글자',value:base?base[0]+base[1]:null,indices:[0,1],
+  focus:'중년은 사회에서 자신의 역할을 정하고 활동 범위를 넓혀가는 단계로 읽습니다. 직장, 일의 방향, 책임과 관계에서 무엇을 우선할지 선택하는 주제를 다룹니다.',
+  strength:'능력을 보여주는 방법은 다양한데, 눈에 띄는 성과뿐 아니라 신뢰를 쌓고 약속을 지키는 행동도 중요한 자산입니다. 자신이 오래 지속할 수 있는 활동 방식을 구체적으로 찾아보세요.',
+  balance:'성과와 타인의 기대를 기준으로만 선택하면 시간과 자원을 과하게 사용할 수 있습니다. 목표를 세울 때 얻고 싶은 것과 지키고 싶은 것을 함께 적어보세요.',
+  action:'당장 중요한 목표를 세 개 이하로 줄이고, 맡은 역할과 필요한 지원을 문장으로 정리하세요. 돈과 시간의 사용 결과를 주기적으로 확인하면 선택 기준이 명확해집니다.',
+  question:'남에게 보여줄 성과와 나에게 필요한 만족 사이에서 어떤 균형을 원하나요?'},
+ {title:'장년 · 유지와 책임의 균형',gyeok:'이격',formula:'성 + 이름 끝 글자',value:base?base[0]+base[2]:null,indices:[0,2],
+  focus:'장년은 이미 만들어온 기반을 유지하면서 다음 방향을 준비하는 단계로 읽습니다. 관계의 지속, 역할 분담, 변화에 대한 유연성과 회복의 여지를 돌아봅니다.',
+  strength:'축적한 경험을 다른 사람과 나누고, 반복되는 일을 더 효율적으로 만드는 능력을 살펴보세요. 무엇을 계속하고 무엇을 줄일지 구분하는 판단도 성장의 한 형태입니다.',
+  balance:'책임을 혼자 떠안거나 익숙한 방식만 고집하면 변화할 여지가 줄어들 수 있습니다. 주변에 맡길 수 있는 일과 직접 해야 할 일을 구분하고, 기존의 선택을 수정할 여유를 남겨보세요.',
+  action:'지속하고 싶은 관계와 활동, 정리하고 싶은 부담을 따로 적으세요. 장기 목표를 현실적인 단계로 나누고, 회복할 시간과 새로운 배움도 계획에 포함해보세요.',
+  question:'현재의 기반을 유지하면서 새롭게 시도하고 싶은 변화 한 가지는 무엇인가요?'},
+ {title:'전체 · 삶의 방향과 종합',gyeok:'정격',formula:'성 + 이름 첫 글자 + 이름 끝 글자',value:base?base.reduce((a,b)=>a+b,0):null,indices:[0,1,2],
+  focus:'전체 해설은 초년의 배움, 중년의 선택, 장년의 유지와 변화를 한 흐름으로 묶어봅니다. 이름의 수리는 계산된 상징이며, 삶의 전체 가치를 평가하는 점수가 아닙니다.',
+  strength:'서로 다른 시기의 경험을 연결하면 일관되게 지켜온 가치가 드러날 수 있습니다. 이름의 의미 중 자신이 공감하는 부분을 골라 실제로 어떤 행동으로 보여줄지 생각해보세요.',
+  balance:'한 번의 좋은 결과나 어려움이 인생 전체를 규정하지 않습니다. 이름을 바꿔야 성공한다거나 특정 수리가 실패를 결정한다는 결론을 내리기보다 현재 조절할 수 있는 선택을 살펴보세요.',
+  action:'앞으로 지키고 싶은 가치 세 가지와 이번 달 행동 한 가지를 기록하세요. 한 달 뒤 경험을 확인해 계획을 수정하고, 해설과 맞지 않았던 사례도 함께 남겨보세요.',
+  question:'이름의 뜻과 별개로 내가 직접 선택해 이어가고 싶은 삶의 기준은 무엇인가요?'}
+ ];
+ return '<div class="period-intro"><h3>초년·중년·장년·전체, 네 가지 상세 풀이</h3><p>세 글자 이름은 원격·형격·이격·정격을 각각 아래 네 부분에 연결합니다. 시기별 연령 구분은 유파마다 달라 고정 나이를 지정하지 않습니다. 획수는 계산하고, 각 단계의 해설은 이름의 상징을 생활에 연결하는 참고 내용으로 제공합니다.</p></div>'+configs.map((c,i)=>{
+ const symbol=c.indices.filter(n=>letters[n]).map(n=>{
+ const item=$('hanjaMode').value==='auto'?HANJA_DATA.characters[hanjaSelections[n]?.char]:null;
+ return escapeHtml(letters[n])+(item?' · '+item.c+' ('+(item.m||'뜻 별도 확인')+')':'');
+ }).join(' / ');
+ return '<section class="period-card"><small>NAME PERIOD '+(i+1)+' / 4</small><h3>'+c.title+'</h3><div class="period-basis"><strong>'+c.gyeok+' · '+(c.value===null?'격수 미산출':c.value+'획')+'</strong><p>계산식: '+c.formula+(base?' = '+c.indices.map(n=>base[n]).join(' + ')+' = '+c.value:' · 한 글자 성과 두 글자 이름을 가정합니다.')+'</p><p>살펴볼 글자: '+(symbol||escapeHtml(raw))+'</p></div><h4>이 시기의 해석</h4><p>'+c.focus+'</p><h4>살펴볼 강점과 기회</h4><p>'+c.strength+'</p><h4>균형을 위해 주의할 점</h4><p>'+c.balance+'</p><h4>구체적인 실천 방법</h4><p>'+c.action+'</p><p class="reflection"><strong>나에게 묻는 질문:</strong> '+c.question+'</p></section>';
+ }).join('')+'<p class="note">수리별 81수 길흉 등급과 사건 예측은 산출하지 않습니다. 같은 획수 구성은 같은 격수가 나오며 생활 해설은 단계별 공통 안내입니다. 두 글자·복성·그 외 이름 및 한자 없는 이름은 네 단계 해설을 제공하되 위 사격 수리를 적용하지 않습니다.</p>';
+}
+function matchPeriodReport(na,nb,ea,eb,ab,ba){
+ const same=ea===eb;
+ const pair=same?'공통된 관심과 생활 방식이 연결의 소재가 될 수 있습니다. 다만 비슷한 취향이 모든 상황에서 같은 판단을 한다는 뜻은 아닙니다.':'서로 다른 표현 방식과 우선순위를 알아가는 관계로 읽을 수 있습니다. 차이를 좋고 나쁨으로 분류하기보다 각자가 편안함을 느끼는 조건을 확인해보세요.';
+ const balances=[
+ '비슷한 방식이 편안하게 느껴질 수 있지만, 서로 잘한다고 생각하는 영역에서 경쟁이나 비교가 생기지 않는지 돌아보세요.',
+ '한쪽이 아이디어를 내거나 표현하는 흐름으로 읽습니다. 도움과 표현이 일방적인 요구가 되지 않도록 서로 원하는 지원을 확인해보세요.',
+ '한쪽이 현실적인 기준이나 자원 관리를 중시하는 흐름으로 읽습니다. 관리와 통제를 혼동하지 않고 결정권을 함께 나누는 것이 중요합니다.',
+ '한쪽이 책임과 기준의 영향을 더 크게 느끼는 흐름으로 읽습니다. 기대가 부담이 되지 않도록 동의와 조율을 먼저 확인해보세요.',
+ '한쪽이 조언과 배움, 지원을 받는 흐름으로 읽습니다. 도움을 줄 때 상대가 원하는 방식인지 묻고 독립적인 선택도 존중해보세요.'
+ ];
+ const stages=[
+ {title:'초기·초년 · 서로 알아가는 시기',focus:'처음 관계를 만들 때는 매력과 공통점이 먼저 보이고, 갈등 상황에서의 반응은 아직 충분히 알기 어렵습니다. '+pair,
+  communication:na+'은 '+ELEMENTS[ea]+'의 상징, '+nb+'은 '+ELEMENTS[eb]+'의 상징을 가진 일간으로 읽습니다. 처음부터 성격을 단정하지 말고 연락 빈도, 약속 방식, 쉬고 싶은 시간을 서로 물어보세요.',
+  practical:'데이트나 만남의 비용, 시간을 정하는 방법을 이야기해보세요. 한 사람이 계속 계획하거나 비용을 부담하는 방식이 자연스럽게 굳어지지 않도록 작은 일부터 함께 결정하는 것이 좋습니다.',
+  care:'좋아 보이는 특징만 찾기보다 불편했던 순간도 차분히 확인하세요. 상대의 의사를 묻지 않은 도움이나 너무 빠른 약속은 부담이 될 수 있습니다.',
+  action:'이번 주 서로에게 편안했던 행동 하나와 조정하고 싶은 행동 하나를 말해보세요. 상대의 답을 반박하기보다 먼저 요약해서 확인해보세요.'},
+ {title:'중기·중년 · 생활과 차이를 맞추는 시기',focus:'관계가 이어지면 취향보다 실제 생활의 차이가 더 뚜렷해질 수 있습니다. 갈등 자체보다 갈등을 어떻게 이야기하고 해결하는지 살펴보는 단계입니다. '+balances[ab],
+  communication:na+'의 관점에서는 '+REL_NAMES[ab]+', '+nb+'의 관점에서는 '+REL_NAMES[ba]+'의 주제로 읽습니다. 같은 사건을 서로 다르게 느낄 수 있으므로 사실, 감정, 요청을 구분해 말해보세요.',
+  practical:'공동 비용과 개인 비용, 집안일이나 일정 관리의 분담을 구체적으로 적어보세요. 공평함이 반드시 같은 양을 뜻하는 것은 아니므로 각자의 시간과 부담을 함께 고려해야 합니다.',
+  care:'말하지 않아도 알 것이라고 기대하거나 과거의 잘못을 한꺼번에 꺼내지 않도록 해보세요. 한 번의 대화에서는 해결할 주제를 하나로 좁히는 편이 좋습니다.',
+  action:'한 가지 반복되는 갈등을 고르고 상황, 각자의 필요, 가능한 해결책, 다시 확인할 날짜를 적어 합의해보세요.'},
+ {title:'장기·장년 · 관계를 유지하고 변화하는 시기',focus:'오래 이어진 관계에서도 일과 환경, 관심사는 계속 달라질 수 있습니다. 익숙함을 신뢰로 발전시키되 서로를 과거의 모습에 고정하지 않는 태도가 중요합니다.',
+  communication:na+'과 '+nb+'에게 지금 필요한 지원이 예전과 같다고 가정하지 마세요. '+balances[ba]+' 서로의 변화한 목표와 혼자 보내고 싶은 시간도 확인해보세요.',
+  practical:'장기 목표와 공동 자원을 점검하고, 한 사람에게 결정이나 돌봄의 역할이 몰리지 않는지 살펴보세요. 기존의 분담이 현재 상황에도 맞는지 정기적으로 다시 합의할 수 있습니다.',
+  care:'책임을 수행하는 것만으로 정서적 교류가 모두 채워지는 것은 아닙니다. 고마움을 구체적으로 표현하고 함께 즐기는 활동을 새로 만들어보세요.',
+  action:'한 달에 한 번 관계 점검 시간을 정해 유지할 습관, 바꿀 부담, 새롭게 함께 해볼 일 한 가지를 이야기해보세요.'},
+ {title:'전체 · 두 사람의 궁합 종합',focus:'두 일간의 대표 오행은 '+ELEMENTS[ea]+'와 '+ELEMENTS[eb]+'입니다. '+pair+' 관계의 전체 방향은 계산된 상징보다 실제 존중과 신뢰, 반복되는 행동을 통해 확인할 수 있습니다.',
+  communication:'상생은 돕는 상징, 상극은 조절하는 상징으로 설명합니다. 어느 관계든 조언·관리·지원이 상대의 동의와 선택권을 존중하는지 확인해야 합니다.',
+  practical:'함께 원하는 관계의 모습, 돈과 시간의 기준, 개인의 자율성, 갈등 후 회복 방법을 네 가지 핵심 주제로 정리해보세요.',
+  care:'특정 시기에 반드시 결혼하거나 이별한다는 예측은 하지 않습니다. 비슷한 오행도 갈등할 수 있고 다른 오행도 좋은 관계를 만들 수 있으므로 결과에 맞춰 현실을 해석하지 않아도 됩니다.',
+  action:'서로 지킬 약속 하나, 필요할 때 부탁할 도움 하나, 개인적으로 존중받고 싶은 경계 하나를 정해보세요. 실제 경험을 통해 합의를 수정해가는 것이 중요합니다.'}
+ ];
+ return '<div class="period-intro"><h3>네 가지 시기로 살펴보는 상세 궁합</h3><p>초기·중기·장기는 실제 나이나 정해진 연수가 아닌 관계의 진행 단계입니다. 특정 시기의 대운이나 사건을 별도로 계산한 결과가 아니라, 두 일간 오행의 관계를 각 단계의 대화와 생활에 적용한 해설입니다.</p></div>'+stages.map((s,i)=>'<section class="period-card"><small>RELATIONSHIP PERIOD '+(i+1)+' / 4</small><h3>'+s.title+'</h3><h4>관계의 흐름</h4><p>'+s.focus+'</p><h4>감정과 의사소통</h4><p>'+s.communication+'</p><h4>재물·생활·역할 분담</h4><p>'+s.practical+'</p><h4>주의할 갈등과 균형</h4><p>'+s.care+'</p><p class="reflection"><strong>함께 실천할 방법:</strong> '+s.action+'</p></section>').join('');
+}
+
 function nameLetters(){return [...$('fullName').value.normalize('NFC').replace(/\s/g,'')];}
 function renderHanjaChoices(){
  $('nameResult').innerHTML='';$('nameError').textContent='';
