@@ -55,11 +55,35 @@ function detailedGuide(pairs,counts,day,annual,annualE,year){
 
 function todayFortune(day){
  const date=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
- const [y,m,d]=date.split('-').map(Number);
- const pair=Solar.fromYmdHms(y,m,d,12,0,0).getLunar().getEightChar().getDay();
+ const [y,m,d]=date.split('-').map(Number),pair=Solar.fromYmdHms(y,m,d,12,0,0).getLunar().getEightChar().getDay();
  const other=GE[GAN.indexOf(pair[0])],idx=relation(day,other),theme=THEMES[idx];
- return '<div class="card today"><small>TODAY · 한국 시간 기준</small><h2>오늘의 운세 · '+date+'</h2><p class="today-title">'+theme.title.replace('해','하루')+'</p><p>오늘의 일진은 <strong>'+korean(pair)+' ('+pair+')</strong>입니다. 나의 '+ELEMENTS[day]+' 기운과 오늘 천간의 '+ELEMENTS[other]+' 기운을 비교하면 <strong>'+REL_NAMES[idx]+'</strong>의 주제로 읽습니다. '+REL_REASON[idx]+'</p><div class="grid">'+[['재물',theme.money],['일과 공부',theme.work],['관계',theme.love],['생활 리듬',theme.well]].map(v=>'<div class="mini"><h3>'+v[0]+'</h3><p>'+v[1]+'</p></div>').join('')+'</div><p><strong>오늘의 작은 실천:</strong> '+ACTIONS[idx][1]+'</p><p class="note">일진은 한국 날짜의 정오를 대표로 사용합니다. 출생 일간과 오늘 천간의 오행 관계에 따른 참고용 문화 해설이며, 확률·점수나 실제 사건 예측을 의미하지 않습니다.</p></div>';
+ const sections=[
+ ['오늘의 전체 흐름',theme.text+' 내 일간의 '+ELEMENTS[day]+'와 오늘 천간의 '+ELEMENTS[other]+'를 비교하면 '+REL_NAMES[idx]+'의 주제로 읽습니다. '+REL_REASON[idx]+' 오늘 해야 할 일 중 이 주제와 연결되는 한 가지를 골라 실제 경험에 비추어 살펴보세요.'],
+ ['재물·소비·자원 관리',theme.money+' '+ACTIONS[idx][0]+' 필요해서 쓰는 돈과 기분에 따라 쓰는 돈을 구분하고, 중요한 지출은 금액과 목적을 한 번 더 확인해보세요. 이 해설은 수익이나 투자 타이밍을 예측하는 신호가 아닙니다.'],
+ ['직장·학업·성과',theme.work+' '+ACTIONS[idx][1]+' 가장 중요한 과제 하나를 먼저 정하고 완료 기준을 구체적으로 적어보세요. 준비가 필요한 일과 지금 바로 실행할 일을 나누면 일정의 부담을 줄이는 데 도움이 될 수 있습니다.'],
+ ['관계·감정·대화',theme.love+' '+ACTIONS[idx][2]+' 상대의 의도를 짐작하기보다 실제로 원하는 것을 물어보세요. 의견이 다를 때는 사실, 내가 느낀 점, 부탁하고 싶은 행동을 나누어 말하면 대화할 주제가 명확해집니다.'],
+ ['생활 리듬·컨디션',theme.well+' '+ACTIONS[idx][3]+' 피곤함이나 부담을 운의 좋고 나쁨으로 해석하지 말고 수면, 일정, 최근의 생활 변화를 살펴보세요. 이 항목은 몸의 상태를 진단하는 내용이 아니라 일상을 돌아보는 일반적인 안내입니다.'],
+ ['오늘의 실행 계획과 마무리','아침에는 꼭 해야 할 행동 한 가지를 정하고, 낮에는 진행 상황을 확인하세요. 저녁에는 잘한 행동과 다음에 바꿀 행동을 하나씩 적어보세요. 하루의 결과를 운세 문장에 맞추기보다 실제 경험을 기준으로 판단하고, 오늘 해결하지 못한 일은 다음 일정에 구체적으로 옮겨보세요.']
+ ];
+ return '<div class="card today one-page-report"><small>TODAY · 한국 날짜 기준 · A4 약 1페이지</small><h2>오늘의 운세 · '+date+'</h2><p class="today-title">'+theme.title.replace('해','하루')+'</p><p class="report-meta">오늘 일진 '+korean(pair)+' ('+pair+') · 나의 일간 오행 '+ELEMENTS[day]+' · 오늘 천간 오행 '+ELEMENTS[other]+'</p>'+sections.map(v=>'<section class="reading-section"><h3>'+v[0]+'</h3><p>'+v[1]+'</p></section>').join('')+'<p class="note">한국 날짜의 정오 일진을 대표로 사용하며 일간·일진 천간의 오행 관계에 따른 문화 해설입니다. 동일한 일간 오행은 같은 날 같은 해설을 공유합니다. 실제 사건이나 확률을 예측하지 않습니다.</p></div>';
 }
+function nameOnePageReport(raw,parts){
+ const base=parts?.length===3?parts:null;
+ const configs=[
+ ['초년 · 배움과 자신감','원격',[1,2],'초년은 학습과 경험을 쌓으며 생활의 기초를 만드는 단계로 읽습니다. 자신감을 얻었던 환경과 꾸준히 했던 행동을 떠올려보세요. 새로운 일을 시작할 때 결과만 평가하기보다 연습한 과정과 도움받을 방법을 살피는 것이 좋습니다. 다른 사람의 기대에 맞추느라 자신의 속도를 놓치지 않는지도 돌아보세요.','이번 주 배우고 싶은 한 가지를 작은 단위로 나누어 연습하고, 잘된 점과 바꿀 점을 기록해보세요.'],
+ ['중년 · 활동과 선택','형격',[0,1],'중년은 사회에서 역할을 만들고 시간과 자원의 우선순위를 선택하는 단계로 읽습니다. 성과뿐 아니라 신뢰와 약속을 지키는 행동도 살펴보세요. 목표를 정할 때 얻고 싶은 것과 유지하고 싶은 것을 함께 적으면 선택 기준이 명확해집니다. 기대에 비해 부담이 크다면 범위와 지원 조건을 조율해보세요.','중요한 목표를 세 개 이하로 정하고 맡은 역할, 필요한 도움, 완료 기준을 문장으로 정리하세요.'],
+ ['장년 · 유지와 변화','이격',[0,2],'장년은 만들어온 기반을 지키면서 변화할 여지를 남기는 단계로 읽습니다. 경험을 나누고 반복되는 일을 더 효율적으로 만드는 강점을 살펴보세요. 책임을 혼자 떠안거나 익숙한 방식만 고집하지 않는지도 확인할 수 있습니다. 지속할 일과 줄일 부담을 구분하고 회복할 시간을 남겨보세요.','앞으로 유지할 활동, 나눌 수 있는 책임, 새롭게 배우고 싶은 것을 하나씩 골라 실행 계획을 세워보세요.'],
+ ['전체 · 방향과 종합','정격',[0,1,2],'전체는 배움, 선택, 유지와 변화의 흐름을 함께 돌아보는 해설입니다. 이름의 뜻 중 공감하는 가치를 골라 실제 행동과 연결해보세요. 한 번의 성과나 어려움이 삶 전체를 결정하지 않습니다. 계산값을 인생의 등급으로 받아들이기보다 지금 조절할 수 있는 관계와 습관, 선택을 살피는 편이 좋습니다.','지키고 싶은 가치 세 가지와 이번 달 행동 한 가지를 적고, 한 달 뒤 실제 경험을 확인해 계획을 수정하세요.']
+ ];
+ const mode=$('hanjaMode').value;
+ const strokeLine=parts?'글자별 획수 '+parts.join(' · ')+'획 · 전체 합계 '+parts.reduce((a,b)=>a+b,0)+'획':'한자 획수 미입력 · 수리 계산 제외';
+ return '<p class="report-meta">'+(mode==='auto'?'선택한 한자의 자동 획수 구성 · ':'')+strokeLine+'</p><p class="note">세 글자 이름은 원격·형격·이격·정격을 아래 네 부분에 연결합니다. 연령 범위는 유파마다 달라 고정 나이를 지정하지 않습니다.</p>'+configs.map((v,i)=>{
+ const value=base?v[2].reduce((sum,n)=>sum+base[n],0):null;
+ const equation=base?v[2].map(n=>base[n]).join(' + ')+' = '+value+'획':'한 글자 성과 두 글자 이름인 경우 계산';
+ return '<section class="reading-section name-reading"><small>NAME PERIOD '+(i+1)+' / 4</small><h3>'+v[0]+' · '+v[1]+' · '+(value===null?'미산출':value+'획')+'</h3><p class="formula">'+v[1]+' 계산: '+equation+'</p><p>'+v[3]+'</p><p><strong>실천:</strong> '+v[4]+'</p></section>';
+ }).join('')+'<p class="note">격수는 입력 획수로 계산하며 단계별 생활 해설은 공통 안내입니다. 수리별 81수 길흉·성공 확률·개명 필요성은 판정하지 않습니다. 다른 글자 수·복성·한글 이름은 사격 계산을 제외하고 네 단계 해설을 제공합니다.</p>';
+}
+
 function longReport(pairs,counts,day,annual,annualE,year,name){
  const idx=relation(day,annualE),el=ELEMENT_DETAIL[day],total=counts.reduce((a,b)=>a+b,0);
  const pillarTexts=[
@@ -207,7 +231,7 @@ $('nameForm').onsubmit=e=>{
  numeric+='<h3>세 글자 이름의 사격 수리</h3><div class="grid">'+[['원격',first+last,'이름 두 글자의 획수를 더한 값'],['형격',surname+first,'성의 획수와 이름 첫 글자를 더한 값'],['이격',surname+last,'성의 획수와 이름 끝 글자를 더한 값'],['정격',sum,'세 글자 전체 획수를 더한 값']].map(v=>'<div class="mini"><h3>'+v[0]+' · '+v[1]+'획</h3><p>'+v[2]+'</p></div>').join('')+'</div><p class="note">한 글자 성과 두 글자 이름을 가정한 국내 일부 성명학의 사격 계산 방식입니다. 복성이나 다른 체계에서는 계산법이 다릅니다. 수리의 길흉표·81수 해석이나 작명 적합성을 판정하지 않습니다.</p>';
  }else numeric+='<p class="note">사격 계산은 한 글자 성과 두 글자 이름인 경우만 제공합니다. 다른 구성은 글자별 획수와 전체 합계만 표시합니다.</p>';
  }
- $('nameResult').innerHTML='<div class="card"><small>이름의 네 시기 노트</small><h2>'+name+'의 성명학 상세 풀이</h2><p>'+(hanja?'선택한 한자: '+hanja:'한글 이름 · 한자 미입력')+'</p><p>'+(escapeHtml(selectedHanjaMeanings())||'글자의 뜻을 임의로 추정하지 않습니다.')+'</p>'+numeric+namePeriodReport(raw,periodParts)+'<p class="note">한 글자 성과 두 글자 이름에 사격 계산을 적용합니다. 자동 획수는 Unicode 일반 총획수로 원획과 다를 수 있습니다. 이름의 길흉·개명 필요성이나 인생 사건을 단정하지 않습니다. 입력정보는 저장하거나 전송하지 않습니다.</p></div>'+outputActions('nameResult','name');
+ $('nameResult').innerHTML='<div class="card one-page-report"><small>이름의 네 시기 노트 · A4 약 1페이지</small><h2>'+name+'의 성명학 상세 풀이</h2><p>'+(hanja?'선택한 한자: '+hanja:'한글 이름 · 한자 미입력')+'</p><p>'+(escapeHtml(selectedHanjaMeanings())||'글자의 뜻을 임의로 추정하지 않습니다.')+'</p>'+nameOnePageReport(raw,periodParts)+'<p class="note">한 글자 성과 두 글자 이름에 사격 계산을 적용합니다. 자동 획수는 Unicode 일반 총획수로 원획과 다를 수 있습니다. 이름의 길흉·개명 필요성이나 인생 사건을 단정하지 않습니다. 입력정보는 저장하거나 전송하지 않습니다.</p></div>'+outputActions('nameResult','name');
  }catch(err){$('nameError').textContent=err.message;$('nameResult').innerHTML='';}
 };
 routePage();
