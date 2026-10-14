@@ -66,7 +66,7 @@ function todayFortune(day){
  ];
  const investmentText=investmentThemes[idx]+'<br><strong>주식:</strong> 오늘 살펴본 종목의 투자 이유와 그 이유가 틀렸다고 판단할 조건을 기록해보세요.<br><strong>코인:</strong> 급등·급락이나 주변 이야기에 어떤 감정이 드는지 살펴보고, 충동적인 추격이나 손실 만회 심리를 구분해보세요.<br><strong>오늘의 투자 점검:</strong> 판단 근거·감정 상태·내가 정한 위험 한도를 확인하세요. 실시간 시세나 뉴스는 반영하지 않으며, 운세는 매수·매도 신호나 수익 예측이 아닙니다.';
  const sections=[
- ['오늘의 전체 흐름,theme.text+' 내 일간의 '+ELEMENTS[day]+'와 오늘 천간의 '+ELEMENTS[other]+'를 비교하면 '+REL_NAMES[idx]+'의 주제로 읽습니다. '+REL_REASON[idx]+' 오늘 해야 할 일 중 이 주제와 연결되는 한 가지를 골라 실제 경험에 비추어 살펴보세요.'],
+ ['오늘의 전체 흐름',theme.text+' 내 일간의 '+ELEMENTS[day]+'와 오늘 천간의 '+ELEMENTS[other]+'를 비교하면 '+REL_NAMES[idx]+'의 주제로 읽습니다. '+REL_REASON[idx]+' 오늘 해야 할 일 중 이 주제와 연결되는 한 가지를 골라 실제 경험에 비추어 살펴보세요.'],
  ['재물·소비·자원 관리',theme.money+' '+ACTIONS[idx][0]+' 필요해서 쓰는 돈과 기분에 따라 쓰는 돈을 구분하고, 중요한 지출은 금액과 목적을 한 번 더 확인해보세요. 이 해설은 수익이나 투자 타이밍을 예측하는 신호가 아닙니다.'],
  ['투자운세 · 주식·코인',investmentText],
  ['직장·학업·성과',theme.work+' '+ACTIONS[idx][1]+' 가장 중요한 과제 하나를 먼저 정하고 완료 기준을 구체적으로 적어보세요. 준비가 필요한 일과 지금 바로 실행할 일을 나누면 일정의 부담을 줄이는 데 도움이 될 수 있습니다.'],
