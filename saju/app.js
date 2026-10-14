@@ -64,17 +64,16 @@ function todayFortune(day){
  '오늘의 관성 해설은 기준과 약속을 확인하는 주제로 읽습니다. 스스로 정한 매매 규칙을 감정 때문에 바꾸고 있지는 않은지 살펴보세요.',
  '오늘의 인성 해설은 학습과 정보 확인을 중심으로 읽습니다. 새로운 정보의 출처를 확인하고 이해하지 못한 부분을 정리하는 시간을 가져보세요.'
  ];
- const investmentText=investmentThemes[idx]+'<br><strong>주식:</strong> 오늘 살펴본 종목의 투자 이유와 그 이유가 틀렸다고 판단할 조건을 기록해보세요.<br><strong>코인:</strong> 급등·급락이나 주변 이야기에 어떤 감정이 드는지 살펴보고, 충동적인 추격이나 손실 만회 심리를 구분해보세요.<br><strong>오늘의 투자 점검:</strong> 판단 근거·감정 상태·내가 정한 위험 한도를 확인하세요. 실시간 시세나 뉴스는 반영하지 않으며, 운세는 매수·매도 신호나 수익 예측이 아닙니다.';
+ const investmentCard='<section id="investmentFortune" class="card today one-page-report investment-card" style="border:2px solid #bda772"><small>INVESTMENT FORTUNE · 별도 투자운세</small><h2>투자운세 · 주식·코인</h2><p>'+investmentThemes[idx]+'</p><div class="grid"><section class="mini"><h3><strong>주식:</strong> 판단과 기록</h3><p>오늘 살펴본 종목의 투자 이유와 그 이유가 틀렸다고 판단할 조건을 기록해보세요. 주변의 추천과 내가 직접 확인한 근거를 구분하는 데 초점을 맞춰보세요.</p></section><section class="mini"><h3><strong>코인:</strong> 감정과 충동</h3><p>급등·급락이나 주변 이야기에 어떤 감정이 드는지 살펴보고, 충동적인 추격이나 손실 만회 심리를 구분해보세요. 새로운 정보를 접했다면 출처와 내용을 먼저 확인해보세요.</p></section></div><section class="reading-section"><h3>오늘의 투자 점검</h3><p>판단 근거·감정 상태·내가 정한 위험 한도를 확인하세요. 오늘의 판단 이유와 실행한 행동을 기록하고, 나중에 결과와 함께 돌아보세요.</p></section><p class="note">실시간 시세나 뉴스는 반영하지 않으며, 운세는 매수·매도 신호나 수익 예측이 아닙니다. 일진 오행 해설을 투자 태도에 적용한 참고 콘텐츠입니다.</p></section>';
  const sections=[
  ['오늘의 전체 흐름',theme.text+' 내 일간의 '+ELEMENTS[day]+'와 오늘 천간의 '+ELEMENTS[other]+'를 비교하면 '+REL_NAMES[idx]+'의 주제로 읽습니다. '+REL_REASON[idx]+' 오늘 해야 할 일 중 이 주제와 연결되는 한 가지를 골라 실제 경험에 비추어 살펴보세요.'],
  ['재물·소비·자원 관리',theme.money+' '+ACTIONS[idx][0]+' 필요해서 쓰는 돈과 기분에 따라 쓰는 돈을 구분하고, 중요한 지출은 금액과 목적을 한 번 더 확인해보세요. 이 해설은 수익이나 투자 타이밍을 예측하는 신호가 아닙니다.'],
- ['투자운세 · 주식·코인',investmentText],
  ['직장·학업·성과',theme.work+' '+ACTIONS[idx][1]+' 가장 중요한 과제 하나를 먼저 정하고 완료 기준을 구체적으로 적어보세요. 준비가 필요한 일과 지금 바로 실행할 일을 나누면 일정의 부담을 줄이는 데 도움이 될 수 있습니다.'],
  ['관계·감정·대화',theme.love+' '+ACTIONS[idx][2]+' 상대의 의도를 짐작하기보다 실제로 원하는 것을 물어보세요. 의견이 다를 때는 사실, 내가 느낀 점, 부탁하고 싶은 행동을 나누어 말하면 대화할 주제가 명확해집니다.'],
  ['생활 리듬·컨디션',theme.well+' '+ACTIONS[idx][3]+' 피곤함이나 부담을 운의 좋고 나쁨으로 해석하지 말고 수면, 일정, 최근의 생활 변화를 살펴보세요. 이 항목은 몸의 상태를 진단하는 내용이 아니라 일상을 돌아보는 일반적인 안내입니다.'],
  ['오늘의 실행 계획과 마무리','아침에는 꼭 해야 할 행동 한 가지를 정하고, 낮에는 진행 상황을 확인하세요. 저녁에는 잘한 행동과 다음에 바꿀 행동을 하나씩 적어보세요. 하루의 결과를 운세 문장에 맞추기보다 실제 경험을 기준으로 판단하고, 오늘 해결하지 못한 일은 다음 일정에 구체적으로 옮겨보세요.']
  ];
- return '<div class="card today one-page-report"><small>TODAY · 한국 날짜 기준 · A4 약 1페이지</small><h2>오늘의 운세 · '+date+'</h2><p class="today-title">'+theme.title.replace('해','하루')+'</p><p class="report-meta">오늘 일진 '+korean(pair)+' ('+pair+') · 나의 일간 오행 '+ELEMENTS[day]+' · 오늘 천간 오행 '+ELEMENTS[other]+'</p>'+sections.map(v=>'<section class="reading-section"><h3>'+v[0]+'</h3><p>'+v[1]+'</p></section>').join('')+'<p class="note">한국 날짜의 정오 일진을 대표로 사용하며 일간·일진 천간의 오행 관계에 따른 문화 해설입니다. 동일한 일간 오행은 같은 날 같은 해설을 공유합니다. 실제 사건이나 확률을 예측하지 않습니다.</p></div>';
+ return '<div class="card today one-page-report"><small>TODAY · 한국 날짜 기준 · A4 약 1페이지</small><h2>오늘의 운세 · '+date+'</h2><p class="today-title">'+theme.title.replace('해','하루')+'</p><p class="report-meta">오늘 일진 '+korean(pair)+' ('+pair+') · 나의 일간 오행 '+ELEMENTS[day]+' · 오늘 천간 오행 '+ELEMENTS[other]+'</p>'+sections.map(v=>'<section class="reading-section"><h3>'+v[0]+'</h3><p>'+v[1]+'</p></section>').join('')+'<p class="note">한국 날짜의 정오 일진을 대표로 사용하며 일간·일진 천간의 오행 관계에 따른 문화 해설입니다. 동일한 일간 오행은 같은 날 같은 해설을 공유합니다. 실제 사건이나 확률을 예측하지 않습니다.</p></div>'+investmentCard;
 }
 function nameOnePageReport(raw,parts){
  const base=parts?.length===3?parts:null;
