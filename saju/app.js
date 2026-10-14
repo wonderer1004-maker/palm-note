@@ -81,18 +81,23 @@ function render(){
  const value=birthDate();if(!value)throw Error('생년월일을 입력해주세요.');
  const [y,m,d]=value.split('-').map(Number), dt=new Date(Date.UTC(y,m-1,d));
  if(y<1900||y>2100||dt.getUTCMonth()+1!==m||dt.getUTCDate()!==d||value>new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'}))throw Error('실제 출생한 날짜를 입력해주세요.');
- const unknown=$('unknown').checked;
+ const unknown=activePage==='today'||$('unknown').checked;
  if(!unknown&&!$('time').value)throw Error('출생시간을 입력하거나 시간 미상을 선택해주세요.');
  const [h,min]=unknown?[12,0]:$('time').value.split(':').map(Number);
- const year=Number($('year').value);if(!Number.isInteger(year)||year<1901||year>2099)throw Error('운세 연도는 1901~2099년 사이로 입력해주세요.');
- const result=pillars(y,m,d,h,min,Number($('sect').value),unknown),pairs=result.pairs;
+ const year=activePage==='today'?currentBirthYear:Number($('year').value);if(!Number.isInteger(year)||year<1901||year>2099)throw Error('운세 연도는 1901~2099년 사이로 입력해주세요.');
+ const result=pillars(y,m,d,h,min,activePage==='today'?2:Number($('sect').value),unknown),pairs=result.pairs;
  const counts=[0,0,0,0,0];pairs.filter(Boolean).forEach(p=>{counts[GE[GAN.indexOf(p[0])]]++;counts[ZE[ZHI.indexOf(p[1])]]++;});
  const total=counts.reduce((a,b)=>a+b,0),day=GE[GAN.indexOf(pairs[2][0])];
  const annual=Solar.fromYmd(year,7,1).getLunar().getEightChar().getYear(), annualE=GE[GAN.indexOf(annual[0])],t=THEMES[relation(day,annualE)];
  const name=escapeHtml($('name').value.trim()||'당신');
+ if(activePage==='today'){
+ $('dailyResult').innerHTML=todayFortune(day)+outputActions('dailyResult','today');
+ routePage();if(window.matchMedia('(max-width:760px)').matches)$('dailyResult').scrollIntoView({behavior:'smooth',block:'start'});
+ return;
+ }
  const column=pairs.map((p,i)=>'<div class="column"><small>'+['년주','월주','일주','시주'][i]+'</small><strong>'+(p?p[0]+'<br>'+p[1]:'—<br>—')+'</strong><span>'+(p?korean(p):'시간 미상')+'</span></div>').join('');
  let months='';for(let mo=1;mo<=12;mo++){const p=pillars(year,mo,15,12,0).pairs[1],mt=THEMES[relation(day,GE[GAN.indexOf(p[0])])];months+='<div class="month"><strong>'+mo+'월 · '+korean(p)+'</strong><p>'+mt.title.replace('해','흐름')+'</p><p><strong>활동</strong> '+mt.work+'</p><p><strong>자원</strong> '+mt.money+'</p><p><strong>관계</strong> '+mt.love+'</p></div>';}
- $('result').innerHTML=todayFortune(day)+'<div class="card headline"><small>YOUR PERSONAL NOTE · '+year+'</small><h2>'+name+'의 '+year+'년 사주 노트</h2><p>'+korean(annual)+'년 · '+t.title+'</p><p>'+t.text+'</p></div><div class="card"><small>02 / 네 기둥</small><h2>나의 사주팔자</h2><div class="columns">'+column+'</div><p class="note">양력 '+value+' · '+(unknown?'출생시간 미상':$('time').value+' 한국 표준시')+' · 일주는 '+($('sect').value==='2'?'밤 12시':'밤 11시')+' 기준</p><h3>일간 '+korean(pairs[2][0])+' · '+ELEMENTS[day]+'의 기운</h3><p>'+PERSONAL[day]+'</p></div><div class="card"><small>03 / 오행의 균형</small><h2>다섯 기운의 구성</h2>'+ELEMENTS.map((el,i)=>'<div class="barrow"><span>'+el+' ('+['木','火','土','金','水'][i]+')</span><div class="track"><div class="fill" style="width:'+counts[i]/total*100+'%;background:'+COLORS[i]+'"></div></div><span>'+counts[i]+'개</span></div>').join('')+'<p class="note">천간과 지지의 대표 오행을 단순 집계합니다. 지장간·월령 가중치·신강약·용신은 판단하지 않습니다. 없는 오행이 불운을 뜻하지 않습니다.</p></div><div class="card"><small>04 / 올해의 해설</small><h2>'+year+'년, 나를 위한 네 가지 질문</h2><div class="grid">'+[['재물 · 자원',t.money],['직장 · 성장',t.work],['관계 · 소통',t.love],['생활 · 컨디션',t.well]].map(v=>'<div class="mini"><h3>'+v[0]+'</h3><p>'+v[1]+'</p></div>').join('')+'</div><p class="note">일간 오행과 해당 연도 천간의 상생·상극 관계로 생성한 일반 해설입니다. 신살·대운·합충 전체를 종합한 정밀 감정은 아닙니다. 연도 운세는 입춘부터 다음 입춘까지의 기운을 뜻합니다.</p></div><div class="card"><small>05 / 월별 노트</small><h2>한 달씩 살펴보는 흐름</h2><p class="note">양력 매월 15일의 절기 월주를 대표로 사용합니다. 월초·절입 전후에는 월주가 다를 수 있습니다.</p><div class="months">'+months+'</div><div class="actions"><button id="copy" type="button">결과 전체 복사</button><button id="print" type="button" class="secondary">사주 해설 3페이지 · PDF 저장</button></div><p id="copyStatus" role="status" class="note"></p></div>';
+ $('result').innerHTML='<div class="card headline"><small>YOUR PERSONAL NOTE · '+year+'</small><h2>'+name+'의 '+year+'년 사주 노트</h2><p>'+korean(annual)+'년 · '+t.title+'</p><p>'+t.text+'</p></div><div class="card"><small>02 / 네 기둥</small><h2>나의 사주팔자</h2><div class="columns">'+column+'</div><p class="note">양력 '+value+' · '+(unknown?'출생시간 미상':$('time').value+' 한국 표준시')+' · 일주는 '+($('sect').value==='2'?'밤 12시':'밤 11시')+' 기준</p><h3>일간 '+korean(pairs[2][0])+' · '+ELEMENTS[day]+'의 기운</h3><p>'+PERSONAL[day]+'</p></div><div class="card"><small>03 / 오행의 균형</small><h2>다섯 기운의 구성</h2>'+ELEMENTS.map((el,i)=>'<div class="barrow"><span>'+el+' ('+['木','火','土','金','水'][i]+')</span><div class="track"><div class="fill" style="width:'+counts[i]/total*100+'%;background:'+COLORS[i]+'"></div></div><span>'+counts[i]+'개</span></div>').join('')+'<p class="note">천간과 지지의 대표 오행을 단순 집계합니다. 지장간·월령 가중치·신강약·용신은 판단하지 않습니다. 없는 오행이 불운을 뜻하지 않습니다.</p></div><div class="card"><small>04 / 올해의 해설</small><h2>'+year+'년, 나를 위한 네 가지 질문</h2><div class="grid">'+[['재물 · 자원',t.money],['직장 · 성장',t.work],['관계 · 소통',t.love],['생활 · 컨디션',t.well]].map(v=>'<div class="mini"><h3>'+v[0]+'</h3><p>'+v[1]+'</p></div>').join('')+'</div><p class="note">일간 오행과 해당 연도 천간의 상생·상극 관계로 생성한 일반 해설입니다. 신살·대운·합충 전체를 종합한 정밀 감정은 아닙니다. 연도 운세는 입춘부터 다음 입춘까지의 기운을 뜻합니다.</p></div><div class="card"><small>05 / 월별 노트</small><h2>한 달씩 살펴보는 흐름</h2><p class="note">양력 매월 15일의 절기 월주를 대표로 사용합니다. 월초·절입 전후에는 월주가 다를 수 있습니다.</p><div class="months">'+months+'</div><div class="actions"><button id="copy" type="button">결과 전체 복사</button><button id="print" type="button" class="secondary">사주 해설 3페이지 · PDF 저장</button></div><p id="copyStatus" role="status" class="note"></p></div>';
  const monthlyCard=$('copy').parentElement.parentElement;
  monthlyCard.insertAdjacentHTML('afterend',longReport(pairs,counts,day,annual,annualE,year,name));
  splitBirthResults();
@@ -124,15 +129,23 @@ $('birthYear').onchange=updateBirthDays;
 $('birthMonth').onchange=updateBirthDays;
 updateBirthDays();
 
-let activePage='today';
+let activePage='home';
 function routePage(){
- const route=location.hash.slice(1);activePage=['today','saju','name','match'].includes(route)?route:'today';
+ const route=location.hash.slice(1);activePage=['today','saju','name','match'].includes(route)?route:'home';
+ const home=activePage==='home';
+ $('homePage').hidden=!home;$('homeHero').hidden=!home;$('pageHeading').hidden=home;$('pageTabs').hidden=home;
+ const titles={today:'오늘의 운세',saju:'사주팔자',name:'성명학',match:'궁합'};
+ const descriptions={today:'생년월일을 입력하여 오늘의 해설만 확인하세요.',saju:'사주팔자와 오행, 올해의 흐름을 자세히 살펴보세요.',name:'이름의 뜻과 한자 획수 구성을 확인하세요.',match:'두 사람의 생년월일로 관계의 기운을 비교하세요.'};
+ $('pageTitle').textContent=titles[activePage]||'';$('pageDescription').textContent=descriptions[activePage]||'';
+ $('birthTitle').textContent=activePage==='today'?'오늘의 운세를 위한 생년월일':'사주팔자를 위한 출생 정보';
+ $('birthSubmit').textContent=activePage==='today'?'오늘의 운세만 보기 ↗':'사주팔자 보기 ↗';
+ for(const id of ['time','unknown','year','sect']){const field=$(id).closest('label');if(field)field.hidden=activePage==='today';}
  document.body.dataset.page=activePage;document.body.dataset.printPage=activePage;
  $('birthLayout').hidden=!['today','saju'].includes(activePage);
  $('dailyResult').hidden=activePage!=='today';$('result').hidden=activePage!=='saju';
  $('namePage').hidden=activePage!=='name';$('matchPage').hidden=activePage!=='match';
  document.querySelectorAll('[data-page]').forEach(a=>{a.setAttribute('aria-current',a.dataset.page===activePage?'page':'false');});
- document.title=({today:'오늘의 운세',saju:'사주팔자',name:'성명학',match:'궁합'}[activePage])+' · 사주노트';
+ document.title=home?'사주노트 · 원하는 메뉴 선택':titles[activePage]+' · 사주노트';
 }
 function printPage(page){document.body.dataset.printPage=page;window.print();}
 function outputActions(target,page){
